@@ -1,3 +1,4 @@
+import type { IssueReqBody } from "../types/types";
 import api from "./axios";
 
 export const getIssues = async () => {
@@ -8,9 +9,15 @@ export const getIssues = async () => {
 export const createIssue = async (
   title: string,
   description: string,
-  columnId: number
-) => {
-  const res = await api.post("/issues", { title, description, columnId });
+  columnId: number,
+  position: number
+): Promise<IssueReqBody> => {
+  const res = await api.post("/issues", {
+    title,
+    description,
+    column_id: columnId,
+    position,
+  });
   return res.data;
 };
 

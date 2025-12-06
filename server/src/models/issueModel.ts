@@ -11,3 +11,16 @@ export async function listIssues() {
     description: string;
   }>;
 }
+
+export async function createIssue(
+  title: string,
+  description: string,
+  column_id: number,
+  position: number
+) {
+  const [result] = await pool.query<ResultSetHeader>(
+    "INSERT INTO issues (title, description, column_id, position) VALUES (?, ?, ?, ?)",
+    [title, description, column_id, position]
+  );
+  return { id: result.insertId, title, description, column_id, position };
+}

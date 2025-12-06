@@ -75,7 +75,7 @@ export default function KanbanBoard() {
               <Column
                 key={column.id}
                 column={column}
-                issues={issues.filter((issue) => issue.columnId === column.id)}
+                issues={issues.filter((issue) => issue.column_id === column.id)}
               />
             ))}
 
