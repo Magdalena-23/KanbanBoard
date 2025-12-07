@@ -15,7 +15,7 @@ const IssueCard = ({ issue }: IssueCardProps) => {
       </div>
 
       {issue.description && (
-        <p className="text-xs text-gray-500 leading-snug">
+        <p className="text-xs text-gray-500 line-clamp-2 leading-snug">
           {issue.description}
         </p>
       )}

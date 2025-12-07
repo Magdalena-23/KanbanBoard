@@ -1,34 +1,43 @@
 import IssueCard from "./IssueCard";
-import type { Column as ColumnType, Issue } from "../types/types";
+import type { Column, Column as ColumnType, Issue } from "../types/types";
 import CardModal from "./CardModal";
-import { useState } from "react";
-import ColumnModal from "./ColumnModal";
+import { useRef, useState } from "react";
+import { deleteColumn } from "../api/columns";
+import { useOnClickOutside } from "../hooks/useOnClickOutside";
 
 type ColumnProps = {
   column: ColumnType;
   issues: Issue[];
+  setEditColumnId: (id: number | null) => void;
+  onDeleteColumn: (id: number) => void;
+  onAddIssue: (newIssue: Issue) => void;
 };
 
-const Column = ({ column, issues }: ColumnProps) => {
+const Column = ({
+  column,
+  issues,
+  setEditColumnId,
+  onDeleteColumn,
+  onAddIssue,
+}: ColumnProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isOpenMenu, setIsOpenMenu] = useState(false);
-  const [editColumnId, setEditColumnId] = useState<number | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  useOnClickOutside(ref, () => setIsOpenMenu(false));
 
-  console.log(editColumnId, column);
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this column?")) return;
+    await deleteColumn(column.id);
+    onDeleteColumn(column.id);
+  };
 
   return (
     <>
-      <ColumnModal
-        isOpen={editColumnId === column.id}
-        onClose={() => setEditColumnId(null)}
-        onSubmit={() => {}}
-        columnData={column.id === editColumnId ? column : undefined}
-      />
       <CardModal
         columnId={column.id}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={() => {}}
+        onAddIssue={onAddIssue}
       />
       <div className="flex flex-col w-72 bg-white/90 backdrop-blur rounded-xl shadow-md border border-purple-200 p-4 cursor-grab">
         <div className="flex items-center justify-between mb-3">
@@ -41,7 +50,7 @@ const Column = ({ column, issues }: ColumnProps) => {
             </p>
           </div>
 
-          <div className="relative">
+          <div ref={ref} className="relative">
             <button
               onClick={() => setIsOpenMenu(true)}
               className="h-7 w-7 rounded-full bg-purple-200 flex items-center justify-center text-purple-700 text-lg hover:bg-purple-300 transition-colors cursor-pointer"
@@ -60,7 +69,10 @@ const Column = ({ column, issues }: ColumnProps) => {
                   Edit
                 </button>
                 <button
-                  onClick={() => setIsOpenMenu(false)}
+                  onClick={() => {
+                    setIsOpenMenu(false);
+                    handleDelete();
+                  }}
                   className=" w-full px-4 py-1 text-xs text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                 >
                   Delete

@@ -7,20 +7,25 @@ type CardModalProps = {
   cardData?: Issue;
   onClose: () => void;
   columnId: number;
+  onAddIssue?: (newIssue: Issue) => void;
 };
 
-const CardModal = ({ isOpen, onClose, columnId, cardData }: CardModalProps) => {
+const CardModal = ({
+  isOpen,
+  onClose,
+  columnId,
+  cardData,
+  onAddIssue,
+}: CardModalProps) => {
   const [title, setTitle] = useState(cardData ? cardData.title : "");
   const [description, setDescription] = useState(
     cardData ? cardData.description : ""
   );
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<{ title: string; description: string }>({
     title: "",
     description: "",
   });
   const handleClose = () => {
-    if (isSubmitting) return;
     setTitle("");
     setDescription("");
     setError({ title: "", description: "" });
@@ -37,20 +42,23 @@ const CardModal = ({ isOpen, onClose, columnId, cardData }: CardModalProps) => {
       setError({ title: "", description: "Description is required" });
       return;
     }
-    setIsSubmitting(true);
 
     try {
       if (cardData) {
         // await updateIssue(title, description, columnId, cardData.id);
         console.log("UPDATE");
       } else {
-        await createIssue(title, description, columnId, 0);
+        const issue = await createIssue(title, description, columnId, 0);
+
+        console.log("ISSUSE", issue);
+
+        if (onAddIssue) {
+          onAddIssue(issue as Issue);
+        }
       }
       handleClose();
     } catch (error) {
       console.log(error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -64,35 +72,50 @@ const CardModal = ({ isOpen, onClose, columnId, cardData }: CardModalProps) => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="relative">
             <label className="mb-1 block text-sm font-medium text-gray-600">
               Issue name
             </label>
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-200"
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (error.title) setError((prev) => ({ ...prev, title: "" }));
+              }}
+              className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-200${
+                error.title ? " border-red-500 ring-2 ring-red-200" : ""
+              }`}
               autoFocus
             />
             {error.title && (
-              <p className="mt-1 text-xs text-red-500">{error.title}</p>
+              <p className="text-xs text-red-500 absolute bottom-[-18px] left-0">
+                {error.title}
+              </p>
             )}
           </div>
 
-          <div>
+          <div className="relative">
             <label className="mb-1 block text-sm font-medium text-gray-600">
               Issue description
             </label>
             <textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-200"
+              onChange={(e) => {
+                setDescription(e.target.value);
+                if (error.description)
+                  setError((prev) => ({ ...prev, description: "" }));
+              }}
+              className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-200${
+                error.description ? " border-red-500 ring-2 ring-red-200" : ""
+              }`}
               placeholder="Describe the issue..."
               rows={4}
             />
             {error.description && (
-              <p className="mt-1 text-xs text-red-500">{error.description}</p>
+              <p className="text-xs text-red-500 absolute bottom-[-13px] left-0">
+                {error.description}
+              </p>
             )}
           </div>
 
@@ -101,13 +124,11 @@ const CardModal = ({ isOpen, onClose, columnId, cardData }: CardModalProps) => {
               type="button"
               onClick={handleClose}
               className="cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-200 hover:bg-gray-300"
-              disabled={isSubmitting}
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
               className="cursor-pointer rounded-full bg-purple-500 px-4 py-1.5 text-xs font-medium text-white shadow-md hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-70"
             >
               Add Issue

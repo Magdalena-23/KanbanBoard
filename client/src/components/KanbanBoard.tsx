@@ -14,6 +14,7 @@ export default function KanbanBoard() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [addColumnModalOpen, setAddColumnModalOpen] = useState<boolean>(false);
+  const [editColumnId, setEditColumnId] = useState<number | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -33,8 +34,6 @@ export default function KanbanBoard() {
     loadData();
   }, []);
 
-  console.log(addColumnModalOpen);
-
   const handleAddNewColumn = async (name: string) => {
     const newColumn: ColumnReqBody = {
       name,
@@ -45,6 +44,16 @@ export default function KanbanBoard() {
       newColumn.position
     );
     setColumns((prev) => [...prev, createdColumn]);
+  };
+
+  const handleUpdateColumn = (updatedColumn: ColumnType) => {};
+
+  const handleDeleteColumn = (id: number) => {
+    setColumns((prev) => prev.filter((col) => col.id !== id));
+  };
+
+  const handleAddIssue = (newIssue: Issue) => {
+    setIssues((prev) => [...prev, newIssue]);
   };
 
   if (loading) {
@@ -72,11 +81,24 @@ export default function KanbanBoard() {
         <main className="flex-1 px-4 py-4 overflow-x-auto">
           <div className="flex gap-4 min-w-max">
             {columns.map((column) => (
-              <Column
-                key={column.id}
-                column={column}
-                issues={issues.filter((issue) => issue.column_id === column.id)}
-              />
+              <div key={column.id}>
+                <Column
+                  key={column.id}
+                  column={column}
+                  issues={issues.filter(
+                    (issue) => issue.column_id === column.id
+                  )}
+                  setEditColumnId={setEditColumnId}
+                  onDeleteColumn={handleDeleteColumn}
+                  onAddIssue={handleAddIssue}
+                />
+                <ColumnModal
+                  isOpen={editColumnId === column.id}
+                  onClose={() => setEditColumnId(null)}
+                  columnData={column}
+                  onSubmit={handleUpdateColumn}
+                />
+              </div>
             ))}
 
             <button
