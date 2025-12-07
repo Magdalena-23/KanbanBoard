@@ -89,7 +89,7 @@ const Column = ({
 
           {issues.length === 0 && (
             <p className="text-xs text-gray-500 italic">
-              No issues in this column.
+              No tasks in this column.
             </p>
           )}
         </div>
@@ -98,7 +98,7 @@ const Column = ({
           onClick={() => setIsModalOpen(true)}
           className="mt-3 inline-flex items-center justify-center gap-1 rounded-lg border border-dashed border-purple-300 bg-purple-50 px-3 py-2 text-xs font-medium text-purple-700 hover:bg-purple-100 transition-colors cursor-pointer"
         >
-          + Add card
+          + Add task
         </button>
       </div>
     </>

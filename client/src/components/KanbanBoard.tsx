@@ -5,7 +5,7 @@ import type {
   Column as ColumnType,
   Issue,
 } from "../types/types";
-import { getColumns, createColumn } from "../api/columns";
+import { getColumns, createColumn, renameColumn } from "../api/columns";
 import { getIssues } from "../api/issues";
 import ColumnModal from "./ColumnModal";
 
@@ -46,7 +46,18 @@ export default function KanbanBoard() {
     setColumns((prev) => [...prev, createdColumn]);
   };
 
-  const handleUpdateColumn = (updatedColumn: ColumnType) => {};
+  const handleUpdateColumn = async (updatedColumn: ColumnType) => {
+    const updatedColumnResponse = await renameColumn(
+      updatedColumn.id,
+      updatedColumn.name
+    );
+
+    setColumns((prev) =>
+      prev.map((col) =>
+        col.id === updatedColumnResponse.id ? updatedColumnResponse : col
+      )
+    );
+  };
 
   const handleDeleteColumn = (id: number) => {
     setColumns((prev) => prev.filter((col) => col.id !== id));
@@ -66,6 +77,7 @@ export default function KanbanBoard() {
         isOpen={addColumnModalOpen}
         onClose={() => setAddColumnModalOpen(false)}
         onSubmit={handleAddNewColumn}
+        onUpdateColumn={handleUpdateColumn}
       />
       <div className="min-h-screen bg-purple-50 text-gray-700 flex flex-col">
         <header className="px-6 py-4 border-b border-purple-200 bg-purple-100/80 backdrop-blur sticky top-0 z-20 flex items-center justify-between">
@@ -96,7 +108,7 @@ export default function KanbanBoard() {
                   isOpen={editColumnId === column.id}
                   onClose={() => setEditColumnId(null)}
                   columnData={column}
-                  onSubmit={handleUpdateColumn}
+                  onUpdateColumn={handleUpdateColumn}
                 />
               </div>
             ))}
