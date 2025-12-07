@@ -1,9 +1,9 @@
 import IssueCard from "./IssueCard";
 import type { Column, Column as ColumnType, Issue } from "../types/types";
 import CardModal from "./CardModal";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { deleteColumn } from "../api/columns";
-import { useOnClickOutside } from "../hooks/useOnClickOutside";
+import ActionsMenu from "./ActionsMenu";
 
 type ColumnProps = {
   column: ColumnType;
@@ -22,8 +22,6 @@ const Column = ({
 }: ColumnProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isOpenMenu, setIsOpenMenu] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useOnClickOutside(ref, () => setIsOpenMenu(false));
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this column?")) return;
@@ -50,36 +48,13 @@ const Column = ({
             </p>
           </div>
 
-          <div ref={ref} className="relative">
-            <button
-              onClick={() => setIsOpenMenu(true)}
-              className="h-7 w-7 rounded-full bg-purple-200 flex items-center justify-center text-purple-700 text-lg hover:bg-purple-300 transition-colors cursor-pointer"
-            >
-              ···
-            </button>
-            {isOpenMenu && (
-              <div className="z-50 absolute top-0 right-0 mt-5 mr-2 bg-white border border-gray-200 rounded-md shadow-md ">
-                <button
-                  onClick={() => {
-                    setIsOpenMenu(false);
-                    setEditColumnId(column.id);
-                  }}
-                  className="w-full px-4 py-1 text-xs text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => {
-                    setIsOpenMenu(false);
-                    handleDelete();
-                  }}
-                  className=" w-full px-4 py-1 text-xs text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-                >
-                  Delete
-                </button>
-              </div>
-            )}
-          </div>
+          <ActionsMenu
+            onDelete={handleDelete}
+            onEdit={() => setEditColumnId(column.id)}
+            isMenuOpen={isOpenMenu}
+            setIsOpenMenu={setIsOpenMenu}
+            columnId={column.id}
+          />
         </div>
 
         <div className="flex-1 flex flex-col gap-3 overflow-y-auto pr-1 pt-1 pb-3">
