@@ -24,4 +24,5 @@ export async function renameColumn(id: number, name: string) {
 
 export async function deleteColumn(id: number) {
   await pool.query("DELETE FROM columns WHERE id = ?", [id]);
+  await pool.query("DELETE FROM issues WHERE column_id = ?", [id]);
 }
