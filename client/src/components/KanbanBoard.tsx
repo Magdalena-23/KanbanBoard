@@ -8,6 +8,7 @@ import type {
 import { getColumns, createColumn, renameColumn } from "../api/columns";
 import { getIssues } from "../api/issues";
 import ColumnModal from "./ColumnModal";
+import { toast } from "react-toastify";
 
 export default function KanbanBoard() {
   const [columns, setColumns] = useState<ColumnType[]>([]);
@@ -39,24 +40,34 @@ export default function KanbanBoard() {
       name,
       position: columns.length + 1,
     };
-    const createdColumn = await createColumn(
-      newColumn.name,
-      newColumn.position
-    );
-    setColumns((prev) => [...prev, createdColumn]);
+
+    try {
+      const createdColumn = await createColumn(
+        newColumn.name,
+        newColumn.position
+      );
+      setColumns((prev) => [...prev, createdColumn]);
+      toast.success("Column created successfully");
+    } catch (error) {
+      toast.error("Failed to create column");
+    }
   };
 
   const handleUpdateColumn = async (updatedColumn: ColumnType) => {
-    const updatedColumnResponse = await renameColumn(
-      updatedColumn.id,
-      updatedColumn.name
-    );
-
-    setColumns((prev) =>
-      prev.map((col) =>
-        col.id === updatedColumnResponse.id ? updatedColumnResponse : col
-      )
-    );
+    try {
+      const updatedColumnResponse = await renameColumn(
+        updatedColumn.id,
+        updatedColumn.name
+      );
+      setColumns((prev) =>
+        prev.map((col) =>
+          col.id === updatedColumnResponse.id ? updatedColumnResponse : col
+        )
+      );
+      toast.success("Column updated successfully");
+    } catch (error) {
+      toast.error("Failed to update column");
+    }
   };
 
   const handleDeleteColumn = (id: number) => {
@@ -65,6 +76,14 @@ export default function KanbanBoard() {
 
   const handleAddIssue = (newIssue: Issue) => {
     setIssues((prev) => [...prev, newIssue]);
+  };
+
+  const handleDeleteIssue = (id: number) => {
+    setIssues((prev) => prev.filter((issue) => issue.id !== id));
+  };
+
+  const handleEditIssue = (issue: Issue) => {
+    setIssues((prev) => prev.map((i) => (i.id === issue.id ? issue : i)));
   };
 
   if (loading) {
@@ -103,6 +122,8 @@ export default function KanbanBoard() {
                   setEditColumnId={setEditColumnId}
                   onDeleteColumn={handleDeleteColumn}
                   onAddIssue={handleAddIssue}
+                  onDeleteIssue={handleDeleteIssue}
+                  onEditIssue={handleEditIssue}
                 />
                 <ColumnModal
                   isOpen={editColumnId === column.id}

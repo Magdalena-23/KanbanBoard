@@ -4,6 +4,7 @@ import CardModal from "./CardModal";
 import { useState } from "react";
 import { deleteColumn } from "../api/columns";
 import ActionsMenu from "./ActionsMenu";
+import { toast } from "react-toastify";
 
 type ColumnProps = {
   column: ColumnType;
@@ -11,6 +12,8 @@ type ColumnProps = {
   setEditColumnId: (id: number | null) => void;
   onDeleteColumn: (id: number) => void;
   onAddIssue: (newIssue: Issue) => void;
+  onDeleteIssue: (id: number) => void;
+  onEditIssue: (issue: Issue) => void;
 };
 
 const Column = ({
@@ -19,14 +22,30 @@ const Column = ({
   setEditColumnId,
   onDeleteColumn,
   onAddIssue,
+  onDeleteIssue,
+  onEditIssue,
 }: ColumnProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isOpenMenu, setIsOpenMenu] = useState(false);
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this column?")) return;
-    await deleteColumn(column.id);
-    onDeleteColumn(column.id);
+
+    try {
+      await deleteColumn(column.id);
+      onDeleteColumn(column.id);
+      toast.success("Column deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete column");
+    }
+  };
+
+  const handleDeleteIssue = (id: number) => {
+    onDeleteIssue(id);
+  };
+
+  const handleEditIssue = (issue: Issue) => {
+    onEditIssue(issue);
   };
 
   return (
@@ -59,7 +78,12 @@ const Column = ({
 
         <div className="flex-1 flex flex-col gap-3 overflow-y-auto pr-1 pt-1 pb-3">
           {issues.map((issue) => (
-            <IssueCard key={issue.id} issue={issue} />
+            <IssueCard
+              key={issue.id}
+              issue={issue}
+              onDeleteIssue={handleDeleteIssue}
+              onEditIssue={handleEditIssue}
+            />
           ))}
 
           {issues.length === 0 && (

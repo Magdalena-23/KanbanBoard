@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Issue } from "../types/types";
-import { createIssue } from "../api/issues";
+import { createIssue, updateIssue } from "../api/issues";
 import ModalWrapper from "./ModalWrapper";
+import { toast } from "react-toastify";
 
 type CardModalProps = {
   isOpen: boolean;
@@ -9,6 +10,7 @@ type CardModalProps = {
   onClose: () => void;
   columnId: number;
   onAddIssue?: (newIssue: Issue) => void;
+  onUpdateIssue?: (updatedIssue: Issue) => void;
 };
 
 const CardModal = ({
@@ -17,6 +19,7 @@ const CardModal = ({
   columnId,
   cardData,
   onAddIssue,
+  onUpdateIssue,
 }: CardModalProps) => {
   const [title, setTitle] = useState(cardData ? cardData.title : "");
   const [description, setDescription] = useState(
@@ -26,9 +29,17 @@ const CardModal = ({
     title: "",
     description: "",
   });
+
+  useEffect(() => {
+    if (isOpen && cardData) {
+      setTitle(cardData.title);
+      setDescription(cardData.description);
+    } else if (isOpen && !cardData) {
+      setTitle("");
+      setDescription("");
+    }
+  }, [isOpen, cardData]);
   const handleClose = () => {
-    setTitle("");
-    setDescription("");
     setError({ title: "", description: "" });
     onClose();
   };
@@ -45,21 +56,19 @@ const CardModal = ({
     }
 
     try {
-      if (cardData) {
-        // await updateIssue(title, description, columnId, cardData.id);
-        console.log("UPDATE");
-      } else {
-        const issue = await createIssue(title, description, columnId, 0);
+      const issue = cardData
+        ? await updateIssue(cardData.id, { title, description })
+        : await createIssue(title, description, columnId, 0);
 
-        console.log("ISSUSE", issue);
+      if (cardData && onUpdateIssue) onUpdateIssue(issue as Issue);
+      if (!cardData && onAddIssue) onAddIssue(issue as Issue);
 
-        if (onAddIssue) {
-          onAddIssue(issue as Issue);
-        }
-      }
+      toast.success(
+        cardData ? "Task updated successfully" : "Task created successfully"
+      );
       handleClose();
     } catch (error) {
-      console.log(error);
+      toast.error(cardData ? "Failed to update task" : "Failed to create task");
     }
   };
 
@@ -68,13 +77,13 @@ const CardModal = ({
   return (
     <ModalWrapper>
       <h2 className="mb-2 text-lg font-semibold text-gray-800">
-        {cardData ? "Edit Issue" : "Add new Issue"}
+        {cardData ? "Edit Task" : "Add new Task"}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
           <label className="mb-1 block text-sm font-medium text-gray-600">
-            Issue name
+            Task name
           </label>
           <input
             type="text"
@@ -97,7 +106,7 @@ const CardModal = ({
 
         <div className="relative">
           <label className="mb-1 block text-sm font-medium text-gray-600">
-            Issue description
+            Task description
           </label>
           <textarea
             value={description}
@@ -109,7 +118,7 @@ const CardModal = ({
             className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-200 ${
               error.description ? " border-red-500 ring-2 ring-red-200" : ""
             }`}
-            placeholder="Describe the issue..."
+            placeholder="Describe the task..."
             rows={4}
           />
           {error.description && (
@@ -131,7 +140,7 @@ const CardModal = ({
             type="submit"
             className="cursor-pointer rounded-full bg-purple-500 px-4 py-1.5 text-xs font-medium text-white shadow-md hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            Add Issue
+            {cardData ? "Save Task" : "Add Task"}
           </button>
         </div>
       </form>
